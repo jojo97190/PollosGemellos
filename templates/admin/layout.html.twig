@@ -1,0 +1,134 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Administration — Pollos Gemelos{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .admin-layout { display: flex; min-height: calc(100vh - 64px); }
+
+    /* ===== SIDEBAR ===== */
+    .admin-sidebar {
+        width: 240px; flex-shrink: 0;
+        background: var(--navy); color: #fff;
+        padding: 1.5rem 0;
+        position: sticky; top: 64px; height: calc(100vh - 64px);
+        overflow-y: auto;
+    }
+    .sidebar-section { padding: .5rem 1.5rem; font-size: .72rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .1em; color: rgba(255,255,255,.4); margin-top: 1rem; }
+    .sidebar-link {
+        display: flex; align-items: center; gap: .7rem;
+        padding: .65rem 1.5rem; color: rgba(255,255,255,.75);
+        text-decoration: none; font-size: .9rem; font-weight: 500;
+        transition: var(--transition);
+    }
+    .sidebar-link:hover, .sidebar-link.active {
+        background: rgba(255,255,255,.1); color: #fff;
+        border-left: 3px solid var(--gold);
+    }
+    .sidebar-link .icon { font-size: 1.1rem; width: 22px; text-align: center; }
+
+    /* ===== MAIN ===== */
+    .admin-main { flex: 1; padding: 2rem; background: var(--bg); overflow: auto; }
+
+    /* ===== STAT CARDS ===== */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.2rem; margin-bottom: 2rem; }
+    .stat-card {
+        background: #fff; border-radius: var(--radius); padding: 1.5rem;
+        box-shadow: var(--shadow); display: flex; align-items: center; gap: 1rem;
+    }
+    .stat-icon { font-size: 2.2rem; }
+    .stat-num { font-size: 2rem; font-weight: 800; color: var(--primary); line-height: 1; }
+    .stat-lbl { font-size: .82rem; color: var(--text-light); margin-top: .2rem; font-weight: 600; }
+
+    /* ===== TABLE ===== */
+    .admin-card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .admin-card-header {
+        padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border);
+        display: flex; align-items: center; justify-content: space-between;
+    }
+    .admin-card-header h2 { font-size: 1.1rem; font-weight: 700; }
+    .table { width: 100%; border-collapse: collapse; }
+    .table th {
+        padding: .75rem 1rem; text-align: left; font-size: .78rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: .05em; color: var(--text-light);
+        background: #f8f9fa; border-bottom: 1px solid var(--border);
+    }
+    .table td { padding: .8rem 1rem; border-bottom: 1px solid var(--border); font-size: .9rem; vertical-align: middle; }
+    .table tr:last-child td { border-bottom: none; }
+    .table tr:hover td { background: #fafafa; }
+    .badge {
+        display: inline-block; padding: .2rem .6rem; border-radius: 20px; font-size: .75rem; font-weight: 700;
+    }
+    .badge-success { background: #d4edda; color: #155724; }
+    .badge-warning { background: #fff3cd; color: #856404; }
+    .badge-danger  { background: #f8d7da; color: #721c24; }
+    .badge-info    { background: #d1ecf1; color: #0c5460; }
+
+    /* ===== RESPONSIVE ADMIN ===== */
+    .sidebar-toggle {
+        display: none; background: var(--primary); color: #fff; border: none;
+        padding: .6rem 1rem; border-radius: 8px; cursor: pointer;
+        font-size: .9rem; font-weight: 600; margin: 1rem 1rem 0;
+    }
+    @media (max-width: 900px) {
+        .admin-layout { flex-direction: column; }
+        .admin-sidebar {
+            width: 100%; height: auto; position: static;
+            display: none; padding: .5rem 0 1rem;
+        }
+        .admin-sidebar.open { display: block; }
+        .sidebar-toggle { display: block; }
+        .admin-main { padding: 1.25rem; }
+        .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 480px) {
+        .stats-grid { grid-template-columns: 1fr; }
+        .admin-card-header { flex-direction: column; align-items: flex-start; gap: .5rem; }
+        .table th, .table td { padding: .6rem .75rem; font-size: .82rem; }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="admin-layout">
+    <button class="sidebar-toggle" onclick="document.getElementById('adminSidebar').classList.toggle('open')">☰ Menu admin</button>
+    {# SIDEBAR #}
+    <aside class="admin-sidebar" id="adminSidebar">
+        <div style="padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,.1); margin-bottom: .5rem;">
+            <div style="font-size:1.2rem;font-weight:800;color:#fff;">⚙️ Admin Panel</div>
+            <div style="font-size:.8rem;color:rgba(255,255,255,.5);margin-top:.2rem;">{{ app.user.prenom }} {{ app.user.nom }}</div>
+        </div>
+        <div class="sidebar-section">Navigation</div>
+        <a href="{{ path('app_admin_dashboard') }}" class="sidebar-link {% block sidebar_active_dashboard %}{% endblock %}">
+            <span class="icon">📊</span> Dashboard
+        </a>
+        <div class="sidebar-section">Catalogue</div>
+        <a href="{{ path('app_admin_produits') }}" class="sidebar-link {% block sidebar_active_produits %}{% endblock %}">
+            <span class="icon">🍽️</span> Produits
+        </a>
+        <a href="{{ path('app_admin_categories') }}" class="sidebar-link {% block sidebar_active_categories %}{% endblock %}">
+            <span class="icon">🏷️</span> Catégories
+        </a>
+        <div class="sidebar-section">Gestion</div>
+        <a href="{{ path('app_admin_commandes') }}" class="sidebar-link {% block sidebar_active_commandes %}{% endblock %}">
+            <span class="icon">📦</span> Commandes
+        </a>
+        <a href="{{ path('app_admin_utilisateurs') }}" class="sidebar-link {% block sidebar_active_utilisateurs %}{% endblock %}">
+            <span class="icon">👥</span> Utilisateurs
+        </a>
+        <div class="sidebar-section">Retour</div>
+        <a href="{{ path('app_home') }}" class="sidebar-link">
+            <span class="icon">🏠</span> Site public
+        </a>
+        <a href="{{ path('app_logout') }}" class="sidebar-link">
+            <span class="icon">🚪</span> Déconnexion
+        </a>
+    </aside>
+
+    {# MAIN CONTENT #}
+    <main class="admin-main">
+        {% block admin_content %}{% endblock %}
+    </main>
+</div>
+{% endblock %}

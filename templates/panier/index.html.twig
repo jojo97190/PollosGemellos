@@ -1,0 +1,149 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon Panier — Pollos Gemelos{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .panier-page { max-width: 1100px; margin: 2.5rem auto 4rem; padding: 0 1.5rem; display: grid; grid-template-columns: 1fr 360px; gap: 2rem; align-items: start; }
+    @media (max-width: 768px) { .panier-page { grid-template-columns: 1fr; } }
+
+    /* LISTE */
+    .panier-header { font-size: 1.6rem; font-weight: 800; margin-bottom: 1.5rem; display: flex; align-items: center; gap: .75rem; }
+    .panier-list { display: flex; flex-direction: column; gap: 1rem; }
+    .panier-item {
+        background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow);
+        padding: 1.2rem 1.4rem; display: flex; gap: 1.2rem; align-items: center;
+    }
+    .item-emoji { font-size: 2.5rem; flex-shrink: 0; width: 56px; text-align: center; }
+    .item-info { flex: 1; min-width: 0; }
+    .item-name { font-size: 1rem; font-weight: 700; }
+    .item-modifs { font-size: .8rem; color: var(--primary); margin-top: .25rem; }
+    .item-price { font-size: 1.1rem; font-weight: 800; color: var(--primary); white-space: nowrap; }
+    .item-actions { display: flex; align-items: center; gap: .5rem; }
+    .qty-badge { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: .25rem .65rem; font-weight: 700; font-size: .9rem; }
+    .btn-remove { background: none; border: none; color: #ccc; font-size: 1.2rem; cursor: pointer; transition: var(--transition); padding: .25rem; border-radius: 6px; }
+    .btn-remove:hover { color: var(--primary); background: #fdf2f2; }
+
+    /* RÉSUMÉ */
+    .summary { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.5rem; position: sticky; top: 80px; }
+    .summary-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem; padding-bottom: .75rem; border-bottom: 1px solid var(--border); }
+    .summary-row { display: flex; justify-content: space-between; font-size: .95rem; margin-bottom: .6rem; }
+    .summary-row.total { font-size: 1.2rem; font-weight: 800; color: var(--primary); padding-top: .75rem; border-top: 2px solid var(--border); margin-top: .75rem; }
+    .summary-row.livraison { color: var(--text-light); }
+
+    /* FORM LIVRAISON */
+    .form-group { margin: 1.25rem 0; }
+    .form-label { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-light); margin-bottom: .4rem; display: block; }
+    .form-input {
+        width: 100%; padding: .65rem .85rem; border: 2px solid var(--border); border-radius: 8px;
+        font-size: .9rem; font-family: inherit; resize: vertical; transition: var(--transition);
+    }
+    .form-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(231,76,60,.1); }
+
+    /* EMPTY */
+    .empty-panier { text-align: center; padding: 5rem 2rem; }
+    .empty-panier .emoji { font-size: 5rem; display: block; margin-bottom: 1.5rem; }
+    .empty-panier h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: .75rem; }
+    .empty-panier p { color: var(--text-light); margin-bottom: 2rem; }
+
+    /* VIDER */
+    .vider-form { display: inline; }
+</style>
+{% endblock %}
+
+{% block body %}
+{% if panier is null or panier.panierProduits is empty %}
+    <div class="empty-panier">
+        <span class="emoji">🛒</span>
+        <h2>Votre panier est vide</h2>
+        <p>Parcourez notre catalogue et ajoutez vos plats préférés !</p>
+        <a href="{{ path('app_home') }}" class="btn btn-primary btn-lg">
+            Voir le catalogue →
+        </a>
+    </div>
+{% else %}
+    <div class="panier-page">
+        <!-- LISTE DES PRODUITS -->
+        <div>
+            <h1 class="panier-header">🛒 Votre Panier</h1>
+            <div class="panier-list">
+                {% for ligne in panier.panierProduits %}
+                    <div class="panier-item">
+                        <div class="item-emoji">🍽️</div>
+                        <div class="item-info">
+                            <div class="item-name">{{ ligne.produit.nom }}</div>
+                            {% if ligne.modifications is not empty %}
+                                <div class="item-modifs">
+                                    {% for modif in ligne.modifications %}
+                                        {% if modif.action == 'ajouter' %}
+                                            <span style="color:var(--green)">+ {{ modif.ingredient.nom }}</span>
+                                        {% else %}
+                                            <span style="color:var(--primary)">− {{ modif.ingredient.nom }}</span>
+                                        {% endif %}
+                                        {% if not loop.last %} · {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div style="font-size:.8rem;color:var(--text-light)">Sans personnalisation</div>
+                            {% endif %}
+                        </div>
+                        <div class="item-actions">
+                            <span class="qty-badge">× {{ ligne.quantite }}</span>
+                            <div class="item-price">{{ ligne.calculerSousTotal()|number_format(2, ',', ' ') }} €</div>
+                            <form action="{{ path('app_panier_retirer', { id: ligne.id }) }}" method="post" style="display:inline">
+                                <input type="hidden" name="_token" value="{{ csrf_token('panier') }}">
+                                <button type="submit" class="btn-remove" title="Retirer">🗑</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <form action="{{ path('app_panier_vider') }}" method="post" style="margin-top:1rem" onsubmit="return confirm('Vider le panier ?')">
+                <input type="hidden" name="_token" value="{{ csrf_token('panier') }}">
+                <button type="submit" class="btn btn-outline btn-sm">🗑 Vider le panier</button>
+            </form>
+        </div>
+
+        <!-- RÉSUMÉ COMMANDE -->
+        <div>
+            <form action="{{ path('app_commande_passer') }}" method="post">
+                <input type="hidden" name="_token" value="{{ csrf_token('commande') }}">
+                <div class="summary">
+                    <div class="summary-title">Récapitulatif</div>
+
+                    {% for ligne in panier.panierProduits %}
+                        <div class="summary-row">
+                            <span>{{ ligne.produit.nom }} ×{{ ligne.quantite }}</span>
+                            <span>{{ ligne.calculerSousTotal()|number_format(2, ',', ' ') }} €</span>
+                        </div>
+                    {% endfor %}
+
+                    <div class="summary-row livraison">
+                        <span>🚚 Livraison</span>
+                        <span>2,99 €</span>
+                    </div>
+
+                    <div class="summary-row total">
+                        <span>Total</span>
+                        <span>{{ (panier.montantTotal + 2.99)|number_format(2, ',', ' ') }} €</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="adresse">📍 Adresse de livraison</label>
+                        <textarea class="form-input" id="adresse" name="adresse_livraison"
+                                  rows="3" placeholder="12 Rue des Lilas, 97130 Capesterre..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;font-size:1rem;padding:.85rem">
+                        ✅ Passer la commande
+                    </button>
+                    <a href="{{ path('app_home') }}" class="btn btn-outline" style="width:100%;justify-content:center;margin-top:.75rem">
+                        ← Continuer mes achats
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

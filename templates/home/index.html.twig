@@ -1,0 +1,253 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Pollos Gemelos — Saveurs Authentiques{% endblock %}
+
+{% block stylesheets %}
+<style>
+    /* ===== HERO ===== */
+    .hero {
+        background: linear-gradient(135deg, var(--navy) 0%, #c0392b 100%);
+        color: #fff; text-align: center; padding: 6rem 1.5rem;
+        position: relative; overflow: hidden;
+    }
+    .hero::before {
+        content: '🍗'; position: absolute; font-size: 22rem; opacity: .06;
+        right: -3rem; top: -5rem; line-height: 1; pointer-events: none;
+    }
+    .hero-badge {
+        display: inline-block; background: var(--gold); color: #111;
+        font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+        padding: .35rem .9rem; border-radius: 20px; margin-bottom: 1.2rem;
+    }
+    .hero h1 { font-size: 3rem; font-weight: 800; margin-bottom: 1rem; line-height: 1.15; }
+    .hero h1 span { color: var(--gold); }
+    .hero p { font-size: 1.15rem; opacity: .85; max-width: 520px; margin: 0 auto 2rem; }
+    .hero-cta { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn-hero-primary {
+        background: var(--gold); color: #111; padding: .9rem 2.2rem;
+        border-radius: 30px; font-weight: 800; font-size: 1rem; text-decoration: none;
+        transition: var(--transition); box-shadow: 0 4px 20px rgba(240,192,0,.4);
+    }
+    .btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(240,192,0,.5); }
+    .btn-hero-secondary {
+        background: rgba(255,255,255,.15); color: #fff; padding: .9rem 2.2rem;
+        border-radius: 30px; font-weight: 600; font-size: 1rem; text-decoration: none;
+        border: 2px solid rgba(255,255,255,.4); transition: var(--transition);
+    }
+    .btn-hero-secondary:hover { background: rgba(255,255,255,.25); }
+
+    /* ===== STATS BAND ===== */
+    .stats-band {
+        background: #fff; border-bottom: 1px solid var(--border);
+        display: flex; justify-content: center; gap: 0; flex-wrap: wrap;
+    }
+    .stat-item {
+        flex: 1; min-width: 160px; text-align: center;
+        padding: 1.5rem 1rem; border-right: 1px solid var(--border);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-num { font-size: 2rem; font-weight: 800; color: var(--primary); }
+    .stat-label { font-size: .82rem; color: var(--text-light); font-weight: 500; margin-top: .2rem; }
+
+    /* ===== CATEGORIES SECTION ===== */
+    .section { max-width: 1200px; margin: 0 auto; padding: 3.5rem 1.5rem; }
+    .section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 2rem; }
+    .section-header h2 { font-size: 1.7rem; font-weight: 800; }
+    .section-header a { color: var(--primary); font-weight: 600; text-decoration: none; font-size: .9rem; }
+    .section-header a:hover { text-decoration: underline; }
+    .cat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 1rem;
+    }
+    .cat-card {
+        background: var(--card-bg); border-radius: var(--radius); padding: 1.8rem 1rem;
+        text-align: center; text-decoration: none; color: var(--text);
+        box-shadow: var(--shadow); transition: var(--transition); border: 2px solid transparent;
+    }
+    .cat-card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+    .cat-icon { font-size: 2.8rem; display: block; margin-bottom: .6rem; }
+    .cat-name { font-size: .95rem; font-weight: 700; }
+    .cat-count { font-size: .8rem; color: var(--text-light); margin-top: .25rem; }
+
+    /* ===== FEATURED PRODUCTS ===== */
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 1.5rem;
+    }
+    .card {
+        background: var(--card-bg); border-radius: var(--radius);
+        box-shadow: var(--shadow); overflow: hidden;
+        transition: var(--transition); display: flex; flex-direction: column;
+    }
+    .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+    .card-img {
+        width: 100%; height: 170px;
+        background: linear-gradient(135deg, #f5e6d3, #fad7a0);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 3.8rem;
+    }
+    .card-body { padding: 1.1rem; flex: 1; display: flex; flex-direction: column; gap: .4rem; }
+    .card-badge {
+        display: inline-block; font-size: .7rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .05em; padding: .2rem .55rem; border-radius: 20px;
+        background: #fff3cd; color: #856404; width: fit-content;
+    }
+    .card-title { font-size: 1rem; font-weight: 700; color: var(--text); }
+    .card-desc { font-size: .82rem; color: var(--text-light); flex: 1; }
+    .card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: .7rem; }
+    .price { font-size: 1.25rem; font-weight: 800; color: var(--primary); }
+
+    /* ===== WHY US ===== */
+    .why-section { background: var(--navy); color: #fff; padding: 4rem 1.5rem; }
+    .why-inner { max-width: 1200px; margin: 0 auto; }
+    .why-inner h2 { font-size: 1.7rem; font-weight: 800; text-align: center; margin-bottom: 2.5rem; }
+    .why-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 2rem; }
+    .why-item { text-align: center; }
+    .why-icon { font-size: 2.5rem; display: block; margin-bottom: .8rem; }
+    .why-title { font-size: 1.05rem; font-weight: 700; margin-bottom: .4rem; }
+    .why-text { font-size: .88rem; opacity: .7; }
+
+    /* ===== CTA BAND ===== */
+    .cta-band {
+        background: linear-gradient(135deg, var(--primary) 0%, #c0392b 100%);
+        color: #fff; text-align: center; padding: 4rem 1.5rem;
+    }
+    .cta-band h2 { font-size: 1.9rem; font-weight: 800; margin-bottom: .75rem; }
+    .cta-band p { opacity: .85; margin-bottom: 1.5rem; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+        .hero { padding: 3.5rem 1.2rem; }
+        .hero h1 { font-size: 2rem; }
+        .hero p { font-size: 1rem; }
+        .section { padding: 2.5rem 1rem; }
+        .section-header h2 { font-size: 1.35rem; }
+        .cat-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+        .products-grid { grid-template-columns: 1fr; }
+        .why-section { padding: 2.5rem 1rem; }
+        .why-inner h2 { font-size: 1.35rem; margin-bottom: 1.75rem; }
+        .cta-band { padding: 2.5rem 1rem; }
+        .cta-band h2 { font-size: 1.45rem; }
+        .stats-band { flex-direction: row; }
+        .stat-item { min-width: 120px; }
+    }
+    @media (max-width: 480px) {
+        .hero { padding: 2.5rem 1rem; }
+        .hero h1 { font-size: 1.65rem; }
+        .hero::before { font-size: 12rem; }
+        .stat-num { font-size: 1.5rem; }
+        .cat-icon { font-size: 2rem; }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+
+{# ===== HERO ===== #}
+<section class="hero">
+    <div class="hero-badge">🔥 Livraison rapide dès 20h</div>
+    <h1>Les saveurs qui<br><span>font revenir</span></h1>
+    <p>Poulet croustillant, pizzas généreuses, burgers juteux — faits maison, personnalisés à votre goût.</p>
+    <div class="hero-cta">
+        <a href="{{ path('app_catalogue') }}" class="btn-hero-primary">🍽️ Voir le menu</a>
+        <a href="{{ path('app_catalogue') }}" class="btn-hero-secondary">Nos spécialités →</a>
+    </div>
+</section>
+
+{# ===== STATS ===== #}
+<div class="stats-band">
+    <div class="stat-item"><div class="stat-num">{{ categories|length }}</div><div class="stat-label">Catégories</div></div>
+    <div class="stat-item"><div class="stat-num">{{ produitsVedette|length }}+</div><div class="stat-label">Plats au menu</div></div>
+    <div class="stat-item"><div class="stat-num">100%</div><div class="stat-label">Fait maison</div></div>
+    <div class="stat-item"><div class="stat-num">⭐ 4.8</div><div class="stat-label">Note client</div></div>
+</div>
+
+{# ===== CATEGORIES ===== #}
+<div class="section">
+    <div class="section-header">
+        <h2>Nos catégories</h2>
+        <a href="{{ path('app_catalogue') }}">Voir tout →</a>
+    </div>
+    <div class="cat-grid">
+        {% set cat_icons = {'Burgers':'🍔','Pizzas':'🍕','Salades':'🥗','Desserts':'🍮','Boissons':'🥤','Poulet':'🍗','Accompagnements':'🍟'} %}
+        {% for categorie in categories %}
+            <a href="{{ path('app_catalogue', { categorie: categorie.id }) }}" class="cat-card">
+                <span class="cat-icon">{{ cat_icons[categorie.nom] ?? '🍽️' }}</span>
+                <div class="cat-name">{{ categorie.nom }}</div>
+            </a>
+        {% endfor %}
+    </div>
+</div>
+
+{# ===== PRODUITS EN VEDETTE ===== #}
+<div class="section" style="padding-top:0">
+    <div class="section-header">
+        <h2>À la une</h2>
+        <a href="{{ path('app_catalogue') }}">Tout le catalogue →</a>
+    </div>
+    <div class="products-grid">
+        {% for produit in produitsVedette %}
+            <div class="card">
+                <div class="card-img">
+                    {% if produit.image %}
+                        <img src="{{ produit.image }}" alt="{{ produit.nom }}" style="width:100%;height:100%;object-fit:cover;">
+                    {% else %}
+                        {% set icons = {'Burgers':'🍔','Pizzas':'🍕','Salades':'🥗','Desserts':'🍮','Boissons':'🥤','Poulet':'🍗','Accompagnements':'🍟'} %}
+                        {{ icons[produit.categorie.nom] ?? '🍽️' }}
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <span class="card-badge">{{ produit.categorie.nom }}</span>
+                    <div class="card-title">{{ produit.nom }}</div>
+                    <div class="card-footer">
+                        <span class="price">{{ produit.prix|number_format(2, ',', ' ') }} €</span>
+                        <a href="{{ path('app_produit_show', { id: produit.id }) }}" class="btn btn-primary btn-sm">
+                            Commander →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+{# ===== POURQUOI NOUS ===== #}
+<section class="why-section">
+    <div class="why-inner">
+        <h2>Pourquoi choisir Pollos Gemelos ?</h2>
+        <div class="why-grid">
+            <div class="why-item">
+                <span class="why-icon">👨‍🍳</span>
+                <div class="why-title">Fait maison</div>
+                <div class="why-text">Chaque plat est préparé à la commande avec des ingrédients frais.</div>
+            </div>
+            <div class="why-item">
+                <span class="why-icon">✏️</span>
+                <div class="why-title">Personnalisable</div>
+                <div class="why-text">Ajoutez ou retirez chaque ingrédient selon vos envies.</div>
+            </div>
+            <div class="why-item">
+                <span class="why-icon">🚀</span>
+                <div class="why-title">Livraison rapide</div>
+                <div class="why-text">Commandez en ligne et recevez votre repas en moins de 30 min.</div>
+            </div>
+            <div class="why-item">
+                <span class="why-icon">💳</span>
+                <div class="why-title">Paiement sécurisé</div>
+                <div class="why-text">Toutes les transactions sont chiffrées et sécurisées.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# ===== CTA ===== #}
+<section class="cta-band">
+    <h2>Prêt à commander ?</h2>
+    <p>Découvrez notre menu complet et régalez-vous dès maintenant.</p>
+    <a href="{{ path('app_catalogue') }}" class="btn-hero-primary">Voir le menu complet</a>
+</section>
+
+{% endblock %}
+

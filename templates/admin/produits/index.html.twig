@@ -1,0 +1,38 @@
+{% extends 'admin/layout.html.twig' %}
+{% block sidebar_active_produits %}active{% endblock %}
+{% block title %}Produits — Admin{% endblock %}
+
+{% block admin_content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+    <h1 style="font-size:1.6rem;font-weight:800">🍽️ Produits</h1>
+    <a href="{{ path('app_admin_produit_new') }}" class="btn btn-primary">+ Ajouter un produit</a>
+</div>
+
+<div class="admin-card">
+    <table class="table">
+        <thead>
+            <tr><th>Nom</th><th>Catégorie</th><th>Prix</th><th>Ingrédients</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+        {% for p in produits %}
+            <tr>
+                <td><strong>{{ p.nom }}</strong></td>
+                <td><span class="badge badge-info">{{ p.categorie.nom }}</span></td>
+                <td><strong style="color:var(--primary)">{{ p.prix|number_format(2,',',' ') }} €</strong></td>
+                <td style="font-size:.82rem;color:var(--text-light)">{{ p.ingredients|length }} ingrédient(s)</td>
+                <td>
+                    <a href="{{ path('app_admin_produit_edit', {id: p.id}) }}" class="btn btn-outline btn-sm">✏️ Modifier</a>
+                    <form method="post" action="{{ path('app_admin_produit_delete', {id: p.id}) }}"
+                          style="display:inline" onsubmit="return confirm('Supprimer ce produit ?')">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete_produit_' ~ p.id) }}">
+                        <button class="btn btn-danger btn-sm">🗑️</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text-light)">Aucun produit.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

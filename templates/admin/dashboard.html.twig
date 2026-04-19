@@ -1,0 +1,58 @@
+{% extends 'admin/layout.html.twig' %}
+{% block sidebar_active_dashboard %}active{% endblock %}
+{% block title %}Dashboard — Admin{% endblock %}
+
+{% block admin_content %}
+<h1 style="font-size:1.6rem;font-weight:800;margin-bottom:1.5rem;">📊 Tableau de bord</h1>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <span class="stat-icon">🍽️</span>
+        <div><div class="stat-num">{{ nbProduits }}</div><div class="stat-lbl">Produits</div></div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-icon">🏷️</span>
+        <div><div class="stat-num">{{ nbCategories }}</div><div class="stat-lbl">Catégories</div></div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-icon">📦</span>
+        <div><div class="stat-num">{{ nbCommandes }}</div><div class="stat-lbl">Commandes</div></div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-icon">👥</span>
+        <div><div class="stat-num">{{ nbUtilisateurs }}</div><div class="stat-lbl">Utilisateurs</div></div>
+    </div>
+</div>
+
+<div class="admin-card">
+    <div class="admin-card-header">
+        <h2>Dernières commandes</h2>
+        <a href="{{ path('app_admin_commandes') }}" class="btn btn-outline btn-sm">Voir tout</a>
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th><th>Date</th><th>Montant</th><th>Statut</th><th>Adresse</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for cmd in dernieresCmds %}
+            <tr>
+                <td><strong>#CMD-{{ '%05d'|format(cmd.id) }}</strong></td>
+                <td>{{ cmd.dateCommande|date('d/m/Y H:i') }}</td>
+                <td>{{ cmd.montantTotal|number_format(2, ',', ' ') }} €</td>
+                <td>
+                    {% set labels = {en_preparation:'🟡 En préparation',en_livraison:'🚚 En livraison',livree:'✅ Livrée',annulee:'❌ Annulée'} %}
+                    <span class="badge badge-{% if cmd.statut == 'livree' %}success{% elseif cmd.statut == 'annulee' %}danger{% else %}warning{% endif %}">
+                        {{ labels[cmd.statut] ?? cmd.statut }}
+                    </span>
+                </td>
+                <td>{{ cmd.adresseLivraison|u.truncate(40,'…') }}</td>
+            </tr>
+        {% else %}
+            <tr><td colspan="5" style="text-align:center;color:var(--text-light);padding:2rem">Aucune commande pour l'instant.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

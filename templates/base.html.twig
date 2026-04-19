@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %}Pollos Gemelos{% endblock %}</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>🍗</text></svg>">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        {% block stylesheets %}{% endblock %}
+        <style>
+            *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+            :root {
+                --primary: #e74c3c;
+                --primary-dark: #c0392b;
+                --navy: #1a1a2e;
+                --navy-light: #16213e;
+                --gold: #f0c000;
+                --green: #27ae60;
+                --text: #2c3e50;
+                --text-light: #6c757d;
+                --bg: #f8f9fa;
+                --card-bg: #ffffff;
+                --border: #e9ecef;
+                --radius: 12px;
+                --shadow: 0 4px 20px rgba(0,0,0,.08);
+                --shadow-hover: 0 8px 30px rgba(0,0,0,.15);
+                --transition: all .25s ease;
+            }
+            body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+
+            /* ===== NAVBAR ===== */
+            .navbar {
+                background: var(--navy);
+                padding: 0 2rem;
+                position: sticky; top: 0; z-index: 100;
+                display: flex; align-items: center; justify-content: space-between;
+                min-height: 64px;
+                box-shadow: 0 2px 20px rgba(0,0,0,.3);
+            }
+            .navbar-brand {
+                font-size: 1.4rem; font-weight: 800; color: #fff; text-decoration: none;
+                display: flex; align-items: center; gap: .5rem;
+            }
+            .navbar-brand span { color: var(--gold); }
+            .navbar-links { display: flex; align-items: center; gap: 1rem; flex-wrap: nowrap; }
+            .navbar-links a {
+                color: rgba(255,255,255,.8); text-decoration: none; font-size: .9rem; font-weight: 500;
+                transition: var(--transition); padding: .4rem .8rem; border-radius: 8px;
+            }
+            .navbar-links a:hover { color: #fff; background: rgba(255,255,255,.1); }
+            .btn-panier {
+                background: var(--primary); color: #fff !important; border-radius: 20px !important;
+                padding: .4rem 1rem !important; font-weight: 600 !important;
+                display: flex; align-items: center; gap: .4rem;
+            }
+            .btn-panier:hover { background: var(--primary-dark) !important; }
+
+            /* ===== FLASH MESSAGES ===== */
+            .flash-container { max-width: 1200px; margin: 1rem auto 0; padding: 0 1.5rem; }
+            .flash { padding: .85rem 1.2rem; border-radius: var(--radius); margin-bottom: .5rem; font-weight: 500; }
+            .flash-success { background: #d4edda; color: #155724; border-left: 4px solid var(--green); }
+            .flash-error   { background: #f8d7da; color: #721c24; border-left: 4px solid var(--primary); }
+            .flash-info    { background: #d1ecf1; color: #0c5460; border-left: 4px solid #17a2b8; }
+
+            /* ===== CONTAINER ===== */
+            .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+            .section-title { font-size: 1.6rem; font-weight: 700; color: var(--text); margin-bottom: 1.5rem; }
+
+            /* ===== BUTTONS ===== */
+            .btn {
+                display: inline-flex; align-items: center; gap: .5rem;
+                padding: .65rem 1.4rem; border-radius: 8px; font-size: .9rem; font-weight: 600;
+                cursor: pointer; border: none; text-decoration: none; transition: var(--transition);
+            }
+            .btn-primary { background: var(--primary); color: #fff; }
+            .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(231,76,60,.4); }
+            .btn-success { background: var(--green); color: #fff; }
+            .btn-success:hover { background: #1e8449; transform: translateY(-1px); }
+            .btn-outline { background: transparent; color: var(--text); border: 2px solid var(--border); }
+            .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+            .btn-danger { background: #dc3545; color: #fff; }
+            .btn-danger:hover { background: #b02a37; }
+            .btn-sm { padding: .4rem .9rem; font-size: .8rem; }
+            .btn-lg { padding: .9rem 2rem; font-size: 1.05rem; border-radius: 10px; }
+
+            /* ===== FOOTER ===== */
+            footer { background: var(--navy); color: rgba(255,255,255,.5); text-align: center; padding: 1.5rem; font-size: .85rem; margin-top: 4rem; }
+            footer a { color: rgba(255,255,255,.7); text-decoration: none; }
+
+            /* ===== HAMBURGER ===== */
+            .navbar-toggle {
+                display: none; flex-direction: column; justify-content: center; gap: 5px;
+                background: none; border: none; cursor: pointer; padding: .45rem;
+                border-radius: 6px; transition: var(--transition); flex-shrink: 0;
+            }
+            .navbar-toggle:hover { background: rgba(255,255,255,.1); }
+            .navbar-toggle span {
+                display: block; width: 22px; height: 2px;
+                background: #fff; border-radius: 2px; transition: var(--transition);
+            }
+            .navbar.nav-open .navbar-toggle span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+            .navbar.nav-open .navbar-toggle span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+            .navbar.nav-open .navbar-toggle span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+            /* ===== RESPONSIVE ===== */
+            @media (max-width: 900px) {
+                .navbar {
+                    flex-wrap: wrap;
+                    padding: .75rem 1rem; gap: 0;
+                }
+                .navbar-toggle { display: flex; }
+                .navbar-links {
+                    display: none; flex-direction: column; align-items: stretch;
+                    width: 100%; padding: .5rem 0 .75rem;
+                    border-top: 1px solid rgba(255,255,255,.12);
+                    gap: .2rem; margin-top: .5rem;
+                }
+                .navbar.nav-open .navbar-links { display: flex; }
+                .navbar-links a { padding: .65rem .8rem; font-size: .95rem; border-radius: 6px; }
+                .btn-panier { justify-content: center; }
+                footer { margin-top: 2.5rem; }
+            }
+            @media (max-width: 480px) {
+                .btn { font-size: .82rem; padding: .55rem 1rem; }
+                .btn-lg { padding: .75rem 1.5rem; font-size: .95rem; }
+                .section-title { font-size: 1.3rem; }
+            }
+        </style>
+    </head>
+    <body>
+        <nav class="navbar" id="mainNav">
+            <a href="{{ path('app_home') }}" class="navbar-brand">🍗 <span>Pollos</span> Gemelos</a>
+            <button class="navbar-toggle" aria-label="Ouvrir le menu" onclick="document.getElementById('mainNav').classList.toggle('nav-open')">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="navbar-links">
+                <a href="{{ path('app_home') }}">Accueil</a>
+                <a href="{{ path('app_catalogue') }}">Catalogue</a>
+                {% if app.user %}
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a href="{{ path('app_admin_dashboard') }}">⚙️ Admin</a>
+                    {% endif %}
+                    <a href="{{ path('app_logout') }}">Déconnexion ({{ app.user.prenom }})</a>
+                {% else %}
+                    <a href="{{ path('app_login') }}">Connexion</a>
+                {% endif %}
+                <a href="{{ path('app_panier_index') }}" class="btn-panier">🛒 Mon Panier</a>
+            </div>
+        </nav>
+
+        {% if app.flashes|length > 0 %}
+        <div class="flash-container">
+            {% for type, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="flash flash-{{ type }}">{{ message }}</div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block body %}{% endblock %}
+
+        <footer>
+            <p>© 2026 Pollos Gemelos — <a href="#">CGU</a> — <a href="#">Contact</a></p>
+        </footer>
+
+        {% block javascripts %}
+            {% block importmap %}{{ importmap('app') }}{% endblock %}
+        {% endblock %}
+    </body>
+</html>

@@ -1,0 +1,122 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Commande confirmée #{{ commande.id }} — Pollos Gemelos{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .confirmation-page { max-width: 700px; margin: 3rem auto 5rem; padding: 0 1.5rem; }
+
+    /* HERO CONFIRMATION */
+    .confirm-hero { text-align: center; padding: 3rem 2rem 2rem; }
+    .confirm-check { font-size: 5rem; display: block; margin-bottom: 1rem; animation: pop .5s ease; }
+    @keyframes pop { 0%{ transform: scale(0) } 70%{ transform: scale(1.15) } 100%{ transform: scale(1) } }
+    .confirm-title { font-size: 2rem; font-weight: 800; color: var(--green); margin-bottom: .5rem; }
+    .confirm-num { font-size: .95rem; color: var(--text-light); }
+    .confirm-num strong { color: var(--text); }
+
+    /* CARD */
+    .recap-card { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; margin-top: 2rem; }
+    .recap-header { background: var(--navy); color: #fff; padding: 1rem 1.5rem; font-size: .85rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+    .recap-body { padding: 1.5rem; display: flex; flex-direction: column; gap: .85rem; }
+
+    /* INFO ROW */
+    .info-row { display: flex; gap: .75rem; align-items: flex-start; font-size: .95rem; }
+    .info-icon { width: 28px; text-align: center; flex-shrink: 0; }
+    .info-label { color: var(--text-light); font-size: .8rem; margin-bottom: .1rem; }
+    .info-val { font-weight: 600; }
+
+    .divider-sm { height: 1px; background: var(--border); }
+
+    /* PRODUIT LIST */
+    .produit-recap-item { display: flex; justify-content: space-between; align-items: baseline; font-size: .9rem; padding: .3rem 0; }
+    .produit-modifs { font-size: .78rem; color: var(--text-light); margin-top: .1rem; }
+
+    /* TOTAL */
+    .total-row { display: flex; justify-content: space-between; align-items: center; padding-top: .75rem; border-top: 2px solid var(--border); margin-top: .5rem; }
+    .total-label { font-size: .9rem; font-weight: 600; }
+    .total-val { font-size: 1.4rem; font-weight: 800; color: var(--primary); }
+
+    /* STATUT */
+    .statut-badge { display: inline-block; background: #fffde7; color: #8c7a00; border: 1px solid #f0c000; border-radius: 20px; padding: .35rem 1rem; font-size: .85rem; font-weight: 600; }
+
+    /* ACTIONS */
+    .confirm-actions { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
+    .confirm-actions .btn { flex: 1; justify-content: center; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="confirmation-page">
+    <div class="confirm-hero">
+        <span class="confirm-check">✅</span>
+        <h1 class="confirm-title">Commande confirmée !</h1>
+        <p class="confirm-num">N° de commande : <strong>#CMD-{{ '%05d'|format(commande.id) }}</strong></p>
+    </div>
+
+    <div class="recap-card">
+        <div class="recap-header">
+            <span>📋 Récapitulatif de votre commande</span>
+            <span class="statut-badge">{{ commande.statutLabel }}</span>
+        </div>
+        <div class="recap-body">
+            <!-- DATE -->
+            <div class="info-row">
+                <span class="info-icon">📅</span>
+                <div>
+                    <div class="info-label">Date de commande</div>
+                    <div class="info-val">{{ commande.dateCommande|date('d/m/Y à H\\hi') }}</div>
+                </div>
+            </div>
+
+            <!-- ADRESSE -->
+            {% if commande.adresseLivraison %}
+                <div class="info-row">
+                    <span class="info-icon">📍</span>
+                    <div>
+                        <div class="info-label">Adresse de livraison</div>
+                        <div class="info-val">{{ commande.adresseLivraison }}</div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="divider-sm"></div>
+
+            <!-- PRODUITS -->
+            <div>
+                <div class="info-label" style="margin-bottom:.5rem">🛒 Produits commandés</div>
+                {% for ligne in commande.panier.panierProduits %}
+                    <div class="produit-recap-item">
+                        <div>
+                            <div>{{ ligne.produit.nom }} <span style="color:var(--text-light);font-weight:400">×{{ ligne.quantite }}</span></div>
+                            {% if ligne.modifications is not empty %}
+                                <div class="produit-modifs">
+                                    {% for modif in ligne.modifications %}
+                                        {% if modif.action == 'ajouter' %}
+                                            <span style="color:var(--green)">+{{ modif.ingredient.nom }}</span>
+                                        {% else %}
+                                            <span style="color:var(--primary)">−{{ modif.ingredient.nom }}</span>
+                                        {% endif %}
+                                        {% if not loop.last %}, {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <strong>{{ ligne.calculerSousTotal()|number_format(2, ',', ' ') }} €</strong>
+                    </div>
+                {% endfor %}
+
+                <div class="total-row">
+                    <span class="total-label">💳 Total payé (livraison incluse)</span>
+                    <span class="total-val">{{ (commande.montantTotal + 2.99)|number_format(2, ',', ' ') }} €</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="confirm-actions">
+        <a href="{{ path('app_home') }}" class="btn btn-primary btn-lg">
+            🏠 Retour à l'accueil
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'admin/layout.html.twig' %}
+{% block sidebar_active_commandes %}active{% endblock %}
+{% block title %}Commandes — Admin{% endblock %}
+
+{% block admin_content %}
+<h1 style="font-size:1.6rem;font-weight:800;margin-bottom:1.5rem">📦 Commandes</h1>
+
+<div class="admin-card">
+    <table class="table">
+        <thead>
+            <tr><th>#</th><th>Date</th><th>Montant</th><th>Adresse</th><th>Statut</th><th>Changer statut</th></tr>
+        </thead>
+        <tbody>
+        {% for cmd in commandes %}
+            {% set labels = {en_preparation:'🟡 En préparation',en_livraison:'🚚 En livraison',livree:'✅ Livrée',annulee:'❌ Annulée'} %}
+            <tr>
+                <td><strong>#CMD-{{ '%05d'|format(cmd.id) }}</strong></td>
+                <td>{{ cmd.dateCommande|date('d/m/Y H:i') }}</td>
+                <td><strong style="color:var(--primary)">{{ cmd.montantTotal|number_format(2,',',' ') }} €</strong></td>
+                <td style="font-size:.85rem;color:var(--text-light)">{{ cmd.adresseLivraison|u.truncate(35,'…') }}</td>
+                <td>
+                    <span class="badge badge-{% if cmd.statut == 'livree' %}success{% elseif cmd.statut == 'annulee' %}danger{% else %}warning{% endif %}">
+                        {{ labels[cmd.statut] ?? cmd.statut }}
+                    </span>
+                </td>
+                <td>
+                    <form method="post" action="{{ path('app_admin_commande_statut', {id: cmd.id}) }}" style="display:flex;gap:.4rem;align-items:center">
+                        <input type="hidden" name="_token" value="{{ csrf_token('statut_cmd_' ~ cmd.id) }}">
+                        <select name="statut" class="form-control-sm">
+                            <option value="en_preparation" {{ cmd.statut == 'en_preparation' ? 'selected' : '' }}>En préparation</option>
+                            <option value="en_livraison"   {{ cmd.statut == 'en_livraison'   ? 'selected' : '' }}>En livraison</option>
+                            <option value="livree"         {{ cmd.statut == 'livree'         ? 'selected' : '' }}>Livrée</option>
+                            <option value="annulee"        {{ cmd.statut == 'annulee'        ? 'selected' : '' }}>Annulée</option>
+                        </select>
+                        <button class="btn btn-outline btn-sm">✔</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-light)">Aucune commande.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .form-control-sm {
+        padding: .35rem .6rem; border: 2px solid var(--border);
+        border-radius: 8px; font-size: .82rem; font-family: inherit;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,226 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ produit.nom }} — Pollos Gemelos{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .breadcrumb {
+        max-width: 1100px; margin: 1.5rem auto; padding: 0 1.5rem;
+        font-size: .85rem; color: var(--text-light);
+    }
+    .breadcrumb a { color: var(--text-light); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--primary); }
+    .breadcrumb span { margin: 0 .4rem; }
+
+    .product-detail {
+        max-width: 1100px; margin: 0 auto 4rem; padding: 0 1.5rem;
+        display: grid; grid-template-columns: 1fr 1.2fr; gap: 3rem; align-items: start;
+    }
+    @media (max-width: 768px) { .product-detail { grid-template-columns: 1fr; } }
+
+    /* IMAGE */
+    .product-img {
+        border-radius: 16px; overflow: hidden; background: linear-gradient(135deg, #f5e6d3, #fad7a0);
+        height: 380px; display: flex; align-items: center; justify-content: center; font-size: 8rem;
+        box-shadow: var(--shadow);
+    }
+    .product-img img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* INFO */
+    .product-info { display: flex; flex-direction: column; gap: 1.25rem; }
+    .product-badge {
+        display: inline-block; background: #fff3cd; color: #856404;
+        font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+        padding: .3rem .8rem; border-radius: 20px; width: fit-content;
+    }
+    .product-name { font-size: 2rem; font-weight: 800; color: var(--text); line-height: 1.2; }
+    .product-desc { font-size: 1rem; color: var(--text-light); }
+    .product-price { font-size: 2.2rem; font-weight: 800; color: var(--primary); }
+
+    /* DIVIDER */
+    .divider { height: 1px; background: var(--border); }
+
+    /* INGREDIENTS */
+    .section-label {
+        font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+        color: var(--text-light); margin-bottom: .75rem;
+    }
+    .ingredient-list { display: flex; flex-direction: column; gap: .5rem; }
+    .ingredient-item {
+        display: flex; align-items: center; gap: .75rem;
+        padding: .65rem .9rem; border-radius: 8px; background: var(--bg);
+        border: 1px solid var(--border); cursor: pointer; transition: var(--transition);
+    }
+    .ingredient-item:hover { border-color: #aaa; background: #f0f0f0; }
+    .ingredient-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--green); cursor: pointer; }
+    .ingredient-name { flex: 1; font-size: .95rem; font-weight: 500; }
+    .ingredient-price { font-size: .85rem; font-weight: 700; color: var(--green); }
+
+    /* SUPPLEMENTS */
+    .supplement-item input[type="checkbox"] { accent-color: var(--primary); }
+    .supplement-price { color: var(--primary); }
+
+    /* QTY */
+    .qty-row { display: flex; align-items: center; gap: 1rem; }
+    .qty-label { font-size: .9rem; font-weight: 600; color: var(--text-light); }
+    .qty-input-group { display: flex; align-items: center; border: 2px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .qty-btn {
+        width: 36px; height: 36px; border: none; background: var(--bg); cursor: pointer;
+        font-size: 1.1rem; font-weight: 700; color: var(--text); transition: var(--transition);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .qty-btn:hover { background: var(--primary); color: #fff; }
+    .qty-val { width: 48px; text-align: center; font-size: 1rem; font-weight: 700; border: none; background: #fff; }
+    .qty-val::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    /* ADD BTN */
+    .add-btn {
+        width: 100%; padding: 1rem; font-size: 1.05rem; border-radius: 10px;
+        justify-content: center;
+    }
+
+    /* NOTES */
+    .note {
+        font-size: .8rem; padding: .5rem .75rem; border-radius: 6px; border-left: 3px solid;
+    }
+    .note-warning { background: #fffde7; border-color: var(--gold); color: #b7950b; }
+    .note-success  { background: #eafaf1; border-color: var(--green); color: #1e8449; }
+
+    @media (max-width: 768px) {
+        .breadcrumb { margin: 1rem auto .5rem; }
+        .product-img { height: 240px; font-size: 5rem; }
+        .product-name { font-size: 1.5rem; }
+        .product-price { font-size: 1.8rem; }
+    }
+    @media (max-width: 480px) {
+        .product-img { height: 200px; }
+        .product-name { font-size: 1.3rem; }
+        .qty-btn { width: 40px; height: 40px; }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="breadcrumb">
+    <a href="{{ path('app_home') }}">Accueil</a>
+    <span>›</span>
+    <a href="{{ path('app_catalogue', { categorie: produit.categorie.id }) }}">{{ produit.categorie.nom }}</a>
+    <span>›</span>
+    {{ produit.nom }}
+</div>
+
+<form action="{{ path('app_panier_ajouter', { id: produit.id }) }}" method="post">
+    <input type="hidden" name="_token" value="{{ csrf_token('panier') }}">
+
+    <div class="product-detail">
+        <!-- IMAGE -->
+        <div class="product-img">
+            {% if produit.image %}
+                <img src="{{ produit.image }}" alt="{{ produit.nom }}">
+            {% else %}
+                🍽️
+            {% endif %}
+        </div>
+
+        <!-- INFO -->
+        <div class="product-info">
+            <span class="product-badge">{{ produit.categorie.nom }}</span>
+            <h1 class="product-name">{{ produit.nom }}</h1>
+            {% if produit.description %}
+                <p class="product-desc">{{ produit.description }}</p>
+            {% endif %}
+            <div class="product-price" id="prix-total">{{ produit.prix|number_format(2, ',', ' ') }} €</div>
+
+            <div class="divider"></div>
+
+            <!-- INGRÉDIENTS DE BASE (à décocher pour retirer) -->
+            {% if produit.ingredients is not empty %}
+                <div>
+                    <div class="section-label">🥗 Ingrédients inclus</div>
+                    <p class="note note-warning" style="margin-bottom:.75rem">
+                        ⚠️ Décochez un ingrédient pour le retirer de votre commande.
+                    </p>
+                    <div class="ingredient-list">
+                        {% for ingredient in produit.ingredients %}
+                            {% if ingredient.prixSupplement is null or ingredient.prixSupplement == 0 %}
+                                <label class="ingredient-item">
+                                    <input type="checkbox" name="enlever[]" value="{{ ingredient.id }}" onchange="updatePrix()">
+                                    <span class="ingredient-name">{{ ingredient.nom }}</span>
+                                    <span style="font-size:.75rem; color:var(--text-light)">Retirer</span>
+                                </label>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- SUPPLÉMENTS (ingrédients payants) -->
+            {% set supplements = produit.ingredients|filter(i => i.prixSupplement is not null and i.prixSupplement > 0) %}
+            {% if supplements is not empty %}
+                <div>
+                    <div class="section-label">✨ Ajouter des suppléments</div>
+                    <p class="note note-success" style="margin-bottom:.75rem">
+                        ✅ Cochez un supplément pour l'ajouter à votre commande.
+                    </p>
+                    <div class="ingredient-list">
+                        {% for ingredient in supplements %}
+                            <label class="ingredient-item supplement-item">
+                                <input type="checkbox" name="ajouter[]" value="{{ ingredient.id }}"
+                                       data-prix="{{ ingredient.prixSupplement }}" onchange="updatePrix()">
+                                <span class="ingredient-name">{{ ingredient.nom }}</span>
+                                <span class="ingredient-price supplement-price">
+                                    +{{ ingredient.prixSupplement|number_format(2, ',', ' ') }} €
+                                </span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="divider"></div>
+
+            <!-- QUANTITÉ -->
+            <div class="qty-row">
+                <span class="qty-label">Quantité :</span>
+                <div class="qty-input-group">
+                    <button type="button" class="qty-btn" onclick="changeQty(-1)">−</button>
+                    <input type="number" name="quantite" id="quantite" class="qty-val" value="1" min="1" max="20" onchange="updatePrix()">
+                    <button type="button" class="qty-btn" onclick="changeQty(1)">+</button>
+                </div>
+            </div>
+
+            <!-- AJOUTER AU PANIER -->
+            <button type="submit" class="btn btn-primary add-btn" id="btn-add">
+                🛒 Ajouter au panier — <span id="prix-btn">{{ produit.prix|number_format(2, ',', ' ') }} €</span>
+            </button>
+
+            <a href="{{ path('app_catalogue') }}" class="btn btn-outline" style="justify-content:center">
+                ← Retour au catalogue
+            </a>
+        </div>
+    </div>
+</form>
+
+<script>
+const prixBase = {{ produit.prix }};
+
+function changeQty(delta) {
+    const input = document.getElementById('quantite');
+    const newVal = Math.max(1, Math.min(20, parseInt(input.value || 1) + delta));
+    input.value = newVal;
+    updatePrix();
+}
+
+function updatePrix() {
+    let supplement = 0;
+    document.querySelectorAll('input[name="ajouter[]"]:checked').forEach(cb => {
+        supplement += parseFloat(cb.dataset.prix || 0);
+    });
+    const qte = parseInt(document.getElementById('quantite').value || 1);
+    const total = (prixBase + supplement) * qte;
+    const formatted = total.toFixed(2).replace('.', ',') + ' €';
+    document.getElementById('prix-total').textContent = formatted;
+    document.getElementById('prix-btn').textContent = formatted;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'admin/layout.html.twig' %}
+{% block sidebar_active_utilisateurs %}active{% endblock %}
+{% block title %}Utilisateurs — Admin{% endblock %}
+
+{% block admin_content %}
+<h1 style="font-size:1.6rem;font-weight:800;margin-bottom:1.5rem">👥 Utilisateurs</h1>
+
+<div class="admin-card">
+    <table class="table">
+        <thead>
+            <tr><th>Nom</th><th>E-mail</th><th>Téléphone</th><th>Rôle</th><th>Modifier le rôle</th></tr>
+        </thead>
+        <tbody>
+        {% for u in utilisateurs %}
+            <tr>
+                <td><strong>{{ u.prenom }} {{ u.nom }}</strong></td>
+                <td>{{ u.email }}</td>
+                <td>{{ u.telephone ?? '—' }}</td>
+                <td>
+                    <span class="badge badge-{% if u.roleMetier == 'admin' %}danger{% elseif u.roleMetier == 'employe' %}info{% else %}success{% endif %}">
+                        {{ u.roleMetier }}
+                    </span>
+                </td>
+                <td>
+                    <form method="post" action="{{ path('app_admin_utilisateur_role', {id: u.id}) }}" style="display:flex;gap:.4rem;align-items:center">
+                        <input type="hidden" name="_token" value="{{ csrf_token('role_user_' ~ u.id) }}">
+                        <select name="role_metier" class="form-control-sm">
+                            <option value="client"  {{ u.roleMetier == 'client'  ? 'selected' : '' }}>Client</option>
+                            <option value="employe" {{ u.roleMetier == 'employe' ? 'selected' : '' }}>Employé</option>
+                            <option value="admin"   {{ u.roleMetier == 'admin'   ? 'selected' : '' }}>Admin</option>
+                        </select>
+                        <button class="btn btn-outline btn-sm">✔</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text-light)">Aucun utilisateur.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .form-control-sm {
+        padding: .35rem .6rem; border: 2px solid var(--border);
+        border-radius: 8px; font-size: .82rem; font-family: inherit;
+    }
+</style>
+{% endblock %}

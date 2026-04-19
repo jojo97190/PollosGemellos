@@ -21,8 +21,8 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 180)]
     private ?string $email = null;
 
-    #[ORM\Column]
-    private array $roles = [];
+    #[ORM\Column(length: 255)]
+    private string $roles = 'ROLE_USER';
 
     #[ORM\Column]
     private ?string $password = null;
@@ -56,14 +56,14 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getRoles(): array
     {
-        $roles = $this->roles;
+        $roles = array_filter(explode(',', $this->roles));
         $roles[] = 'ROLE_USER';
         if ($this->roleMetier === 'admin') $roles[] = 'ROLE_ADMIN';
         if ($this->roleMetier === 'employe') $roles[] = 'ROLE_EMPLOYE';
         return array_unique($roles);
     }
 
-    public function setRoles(array $roles): static { $this->roles = $roles; return $this; }
+    public function setRoles(array $roles): static { $this->roles = implode(',', array_unique($roles)); return $this; }
 
     public function getPassword(): ?string { return $this->password; }
     public function setPassword(string $password): static { $this->password = $password; return $this; }

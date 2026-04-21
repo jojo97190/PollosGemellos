@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Commande;
+use App\Repository\CommandeRepository;
 use App\Repository\PanierRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -10,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/commande', name: 'app_commande_')]
 class CommandeController extends AbstractController
@@ -35,6 +37,11 @@ class CommandeController extends AbstractController
             return $this->redirectToRoute('app_panier_index');
         }
 
+        // Lier l'utilisateur connecté au panier
+        if ($this->getUser()) {
+            $panier->setUtilisateur($this->getUser());
+        }
+
         $panier->calculerMontantTotal();
         $panier->setStatut('valide');
 
@@ -42,6 +49,9 @@ class CommandeController extends AbstractController
         $commande->setPanier($panier);
         $commande->setMontantTotal($panier->getMontantTotal() ?? '0.00');
         $commande->setAdresseLivraison($adresse);
+        if ($this->getUser()) {
+            $commande->setUtilisateur($this->getUser());
+        }
 
         $em->persist($commande);
         $em->flush();
@@ -56,6 +66,15 @@ class CommandeController extends AbstractController
     {
         return $this->render('commande/confirmation.html.twig', [
             'commande' => $commande,
+        ]);
+    }
+
+    #[IsGranted('ROLE_USER')]
+    #[Route('/mes-commandes', name: 'mes_commandes')]
+    public function mesCommandes(CommandeRepository $commandeRepo): Response
+    {
+        return $this->render('commande/mes_commandes.html.twig', [
+            'commandes' => $commandeRepo->findByUtilisateur($this->getUser()),
         ]);
     }
 }

@@ -1,0 +1,137 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes commandes — Pollos Gemelos{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .mes-commandes { max-width: 860px; margin: 2.5rem auto 4rem; padding: 0 1.5rem; }
+    .page-title { font-size: 1.7rem; font-weight: 800; margin-bottom: 2rem; }
+
+    .commande-card { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 1.5rem; }
+    .commande-card-header {
+        background: var(--navy); color: #fff; padding: .9rem 1.4rem;
+        display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .5rem;
+    }
+    .commande-num  { font-weight: 700; font-size: .95rem; }
+    .commande-date { font-size: .82rem; opacity: .7; }
+    .commande-body { padding: 1.4rem; display: flex; flex-direction: column; gap: 1rem; }
+
+    /* PROGRESS BAR */
+    .statut-bar { display: flex; border-radius: 8px; overflow: hidden; }
+    .statut-step {
+        flex: 1; text-align: center; font-size: .75rem; font-weight: 600; padding: .55rem .3rem;
+        background: var(--bg); color: var(--text-light); border: 1px solid var(--border);
+        border-right: none; transition: var(--transition);
+    }
+    .statut-step:last-child { border-right: 1px solid var(--border); }
+    .statut-step.done   { background: #d4edda; color: #155724; border-color: #c3e6cb; }
+    .statut-step.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    /* INFO */
+    .info-row { display: flex; gap: .6rem; align-items: baseline; font-size: .9rem; }
+    .info-label { color: var(--text-light); font-size: .8rem; min-width: 105px; }
+    .info-val   { font-weight: 600; }
+
+    /* PRODUITS */
+    .produits-title { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-light); margin-bottom: .5rem; }
+    .produit-item {
+        display: flex; justify-content: space-between; align-items: baseline;
+        font-size: .875rem; padding: .4rem .65rem; border-radius: 6px; background: var(--bg);
+        margin-bottom: .3rem;
+    }
+    .produit-modifs { font-size: .76rem; color: var(--text-light); margin-top: .1rem; }
+
+    .badge { display: inline-block; padding: .3rem .8rem; border-radius: 20px; font-size: .8rem; font-weight: 700; }
+    .badge-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+    /* EMPTY */
+    .empty-state { text-align: center; padding: 5rem 2rem; }
+    .empty-state .emoji { font-size: 4rem; display: block; margin-bottom: 1.5rem; }
+    .empty-state h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: .75rem; }
+    .empty-state p { color: var(--text-light); margin-bottom: 2rem; }
+
+    @media (max-width: 480px) {
+        .statut-step { font-size: .68rem; padding: .45rem .2rem; }
+        .commande-card-header { flex-direction: column; align-items: flex-start; }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="mes-commandes">
+    <h1 class="page-title">📋 Mes commandes</h1>
+
+    {% if commandes is empty %}
+        <div class="empty-state">
+            <span class="emoji">📭</span>
+            <h2>Aucune commande</h2>
+            <p>Vous n'avez pas encore passé de commande.</p>
+            <a href="{{ path('app_catalogue') }}" class="btn btn-primary btn-lg">Voir le catalogue →</a>
+        </div>
+    {% else %}
+        {% set labels = {en_preparation:'En préparation', en_livraison:'En livraison', livree:'Livrée', annulee:'Annulée'} %}
+        {% for cmd in commandes %}
+            <div class="commande-card">
+                <div class="commande-card-header">
+                    <span class="commande-num">🧾 #CMD-{{ '%05d'|format(cmd.id) }}</span>
+                    <span class="commande-date">{{ cmd.dateCommande|date('d/m/Y à H\\hi') }}</span>
+                </div>
+                <div class="commande-body">
+
+                    {# ===== BARRE DE PROGRESSION ===== #}
+                    {% if cmd.statut != 'annulee' %}
+                        <div class="statut-bar">
+                            <div class="statut-step {{ cmd.statut == 'en_preparation' ? 'active' : 'done' }}">
+                                🟡 Préparation
+                            </div>
+                            <div class="statut-step {{ cmd.statut == 'en_preparation' ? '' : (cmd.statut == 'en_livraison' ? 'active' : 'done') }}">
+                                🚚 En livraison
+                            </div>
+                            <div class="statut-step {{ cmd.statut == 'livree' ? 'done' : '' }}">
+                                ✅ Livrée
+                            </div>
+                        </div>
+                    {% else %}
+                        <span class="badge badge-danger">❌ Commande annulée</span>
+                    {% endif %}
+
+                    {# ===== ADRESSE & MONTANT ===== #}
+                    <div class="info-row">
+                        <span class="info-label">📍 Adresse</span>
+                        <span class="info-val">{{ cmd.adresseLivraison ?? '—' }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">💶 Total payé</span>
+                        <span class="info-val" style="color:var(--primary);font-size:1.1rem">
+                            {{ cmd.montantTotal|number_format(2, ',', ' ') }} €
+                        </span>
+                    </div>
+
+                    {# ===== PRODUITS ===== #}
+                    <div>
+                        <div class="produits-title">Articles commandés</div>
+                        {% for ligne in cmd.panier.panierProduits %}
+                            <div class="produit-item">
+                                <div>
+                                    <span>{{ ligne.produit.nom }}</span>
+                                    {% if ligne.modifications is not empty %}
+                                        <div class="produit-modifs">
+                                            {% for modif in ligne.modifications %}
+                                                {{ modif.action == 'ajouter' ? '+' : '−' }} {{ modif.ingredient.nom }}{% if not loop.last %}, {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <span style="white-space:nowrap;color:var(--text-light)">
+                                    × {{ ligne.quantite }} &nbsp;— &nbsp;<strong style="color:var(--text)">{{ ligne.calculerSousTotal()|number_format(2, ',', ' ') }} €</strong>
+                                </span>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}

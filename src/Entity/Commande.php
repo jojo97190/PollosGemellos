@@ -30,6 +30,10 @@ class Commande
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $adresseLivraison = null;
 
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Utilisateur $utilisateur = null;
+
     public function __construct()
     {
         $this->dateCommande = new \DateTime();
@@ -52,6 +56,9 @@ class Commande
 
     public function getAdresseLivraison(): ?string { return $this->adresseLivraison; }
     public function setAdresseLivraison(?string $adresseLivraison): static { $this->adresseLivraison = $adresseLivraison; return $this; }
+
+    public function getUtilisateur(): ?Utilisateur { return $this->utilisateur; }
+    public function setUtilisateur(?Utilisateur $utilisateur): static { $this->utilisateur = $utilisateur; return $this; }
 
     public function getStatutLabel(): string
     {

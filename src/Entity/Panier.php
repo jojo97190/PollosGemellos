@@ -85,6 +85,6 @@ class Panier
         foreach ($this->panierProduits as $ligne) {
             $total += $ligne->calculerSousTotal();
         }
-        $this->montantTotal = (string) $total;
+        $this->montantTotal = number_format($total, 2, '.', '');
     }
 }

@@ -70,7 +70,7 @@ class PanierProduit
     {
         $prix = (float) $this->produit->getPrix();
         foreach ($this->modifications as $modif) {
-            if ($modif->getAction() === 'ajouter' && $modif->getIngredient()->getPrixSupplement()) {
+            if ($modif->getAction() === 'ajouter' && $modif->getIngredient()->getPrixSupplement() !== null) {
                 $prix += (float) $modif->getIngredient()->getPrixSupplement();
             }
         }

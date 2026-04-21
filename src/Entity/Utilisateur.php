@@ -60,7 +60,7 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
         $roles[] = 'ROLE_USER';
         if ($this->roleMetier === 'admin') $roles[] = 'ROLE_ADMIN';
         if ($this->roleMetier === 'employe') $roles[] = 'ROLE_EMPLOYE';
-        return array_unique($roles);
+        return array_values(array_unique($roles));
     }
 
     public function setRoles(array $roles): static { $this->roles = implode(',', array_unique($roles)); return $this; }

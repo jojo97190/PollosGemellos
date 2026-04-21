@@ -1,0 +1,148 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Espace Employé — Commandes{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .employe-page { max-width: 1200px; margin: 2.5rem auto 4rem; padding: 0 1.5rem; }
+    .page-header { margin-bottom: 2rem; }
+    .page-title { font-size: 1.7rem; font-weight: 800; display: flex; align-items: center; gap: .75rem; }
+    .page-subtitle { color: var(--text-light); margin-top: .35rem; font-size: .95rem; }
+
+    .orders-wrap { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .orders-table { width: 100%; border-collapse: collapse; }
+    .orders-table thead { background: var(--navy); color: #fff; }
+    .orders-table th { padding: .9rem 1.1rem; text-align: left; font-size: .82rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+    .orders-table td { padding: .85rem 1.1rem; border-bottom: 1px solid var(--border); font-size: .9rem; vertical-align: middle; }
+    .orders-table tr:last-child td { border-bottom: none; }
+    .orders-table tbody tr:hover { background: #fafafa; }
+
+    .badge { display: inline-block; padding: .3rem .75rem; border-radius: 20px; font-size: .78rem; font-weight: 700; }
+    .badge-warning { background: #fff3cd; color: #856404; }
+    .badge-info    { background: #d1ecf1; color: #0c5460; }
+    .badge-success { background: #d4edda; color: #155724; }
+    .badge-danger  { background: #f8d7da; color: #721c24; }
+
+    .form-control-sm {
+        padding: .35rem .6rem; border: 2px solid var(--border);
+        border-radius: 8px; font-size: .82rem; font-family: inherit;
+        background: #fff; cursor: pointer;
+    }
+    .form-control-sm:focus { outline: none; border-color: var(--primary); }
+
+    .client-name { font-weight: 600; color: var(--text); font-size: .9rem; }
+    .client-info { font-size: .8rem; color: var(--text-light); }
+
+    .empty-state { text-align: center; padding: 4rem; color: var(--text-light); }
+    .empty-state .emoji { font-size: 3.5rem; display: block; margin-bottom: 1rem; }
+
+    .stats-bar { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
+    .stat-card {
+        flex: 1; min-width: 140px; background: var(--card-bg); border-radius: var(--radius);
+        box-shadow: var(--shadow); padding: 1rem 1.25rem; text-align: center;
+    }
+    .stat-number { font-size: 2rem; font-weight: 800; }
+    .stat-label { font-size: .8rem; color: var(--text-light); margin-top: .2rem; }
+    .stat-prep    .stat-number { color: #856404; }
+    .stat-livr    .stat-number { color: #0c5460; }
+    .stat-done    .stat-number { color: var(--green); }
+    .stat-cancel  .stat-number { color: var(--primary); }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="employe-page">
+    <div class="page-header">
+        <h1 class="page-title">📦 Gestion des commandes</h1>
+        <p class="page-subtitle">Mettez à jour le statut des commandes en temps réel.</p>
+    </div>
+
+    {# ===== STATS ===== #}
+    {% set nb_prep   = commandes|filter(c => c.statut == 'en_preparation')|length %}
+    {% set nb_livr   = commandes|filter(c => c.statut == 'en_livraison')|length %}
+    {% set nb_done   = commandes|filter(c => c.statut == 'livree')|length %}
+    {% set nb_cancel = commandes|filter(c => c.statut == 'annulee')|length %}
+
+    <div class="stats-bar">
+        <div class="stat-card stat-prep">
+            <div class="stat-number">{{ nb_prep }}</div>
+            <div class="stat-label">🟡 En préparation</div>
+        </div>
+        <div class="stat-card stat-livr">
+            <div class="stat-number">{{ nb_livr }}</div>
+            <div class="stat-label">🚚 En livraison</div>
+        </div>
+        <div class="stat-card stat-done">
+            <div class="stat-number">{{ nb_done }}</div>
+            <div class="stat-label">✅ Livrées</div>
+        </div>
+        <div class="stat-card stat-cancel">
+            <div class="stat-number">{{ nb_cancel }}</div>
+            <div class="stat-label">❌ Annulées</div>
+        </div>
+    </div>
+
+    {# ===== TABLE ===== #}
+    <div class="orders-wrap">
+        {% if commandes is empty %}
+            <div class="empty-state">
+                <span class="emoji">📭</span>
+                <p>Aucune commande pour le moment.</p>
+            </div>
+        {% else %}
+            {% set labels = {en_preparation:'🟡 En préparation', en_livraison:'🚚 En livraison', livree:'✅ Livrée', annulee:'❌ Annulée'} %}
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>#Commande</th>
+                        <th>Client</th>
+                        <th>Date</th>
+                        <th>Montant</th>
+                        <th>Adresse</th>
+                        <th>Statut actuel</th>
+                        <th>Modifier le statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for cmd in commandes %}
+                    {% set client = cmd.panier.utilisateur %}
+                    <tr>
+                        <td><strong>#CMD-{{ '%05d'|format(cmd.id) }}</strong></td>
+                        <td>
+                            {% if client %}
+                                <div class="client-name">{{ client.prenom }} {{ client.nom }}</div>
+                                <div class="client-info">{{ client.email }}</div>
+                            {% else %}
+                                <span style="color:var(--text-light)">Invité</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ cmd.dateCommande|date('d/m/Y H:i') }}</td>
+                        <td><strong style="color:var(--primary)">{{ cmd.montantTotal|number_format(2, ',', ' ') }} €</strong></td>
+                        <td style="font-size:.82rem;color:var(--text-light);max-width:180px">
+                            {{ cmd.adresseLivraison ? cmd.adresseLivraison|u.truncate(38, '…') : '—' }}
+                        </td>
+                        <td>
+                            <span class="badge badge-{% if cmd.statut == 'livree' %}success{% elseif cmd.statut == 'annulee' %}danger{% elseif cmd.statut == 'en_livraison' %}info{% else %}warning{% endif %}">
+                                {{ labels[cmd.statut] ?? cmd.statut }}
+                            </span>
+                        </td>
+                        <td>
+                            <form method="post" action="{{ path('app_employe_commande_statut', {id: cmd.id}) }}" style="display:flex;gap:.4rem;align-items:center">
+                                <input type="hidden" name="_token" value="{{ csrf_token('statut_employe_' ~ cmd.id) }}">
+                                <select name="statut" class="form-control-sm">
+                                    <option value="en_preparation" {{ cmd.statut == 'en_preparation' ? 'selected' : '' }}>En préparation</option>
+                                    <option value="en_livraison"   {{ cmd.statut == 'en_livraison'   ? 'selected' : '' }}>En livraison</option>
+                                    <option value="livree"         {{ cmd.statut == 'livree'         ? 'selected' : '' }}>Livrée</option>
+                                    <option value="annulee"        {{ cmd.statut == 'annulee'        ? 'selected' : '' }}>Annulée</option>
+                                </select>
+                                <button class="btn btn-outline btn-sm" type="submit">✔</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

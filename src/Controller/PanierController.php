@@ -25,7 +25,21 @@ class PanierController extends AbstractController
         PanierRepository $panierRepo
     ): Response {
         $panierId = $session->get('panier_id');
-        $panier = $panierId ? $panierRepo->find($panierId) : null;
+        $panier   = $panierId ? $panierRepo->find($panierId) : null;
+
+        // Si pas de panier en session mais utilisateur connecté → chercher en DB
+        if (!$panier && $this->getUser()) {
+            $panier = $panierRepo->findEnCoursByUtilisateur($this->getUser());
+            if ($panier) {
+                $session->set('panier_id', $panier->getId());
+            }
+        }
+
+        // Invalider un panier validé resté en session
+        if ($panier && $panier->getStatut() !== 'en_cours') {
+            $session->remove('panier_id');
+            $panier = null;
+        }
 
         return $this->render('panier/index.html.twig', [
             'panier' => $panier,
@@ -42,10 +56,18 @@ class PanierController extends AbstractController
         EntityManagerInterface $em
     ): Response {
         $panierId = $session->get('panier_id');
-        $panier = $panierId ? $panierRepo->find($panierId) : null;
+        $panier   = $panierId ? $panierRepo->find($panierId) : null;
+
+        // Si pas de panier valide en session mais utilisateur connecté → chercher en DB
+        if ((!$panier || $panier->getStatut() !== 'en_cours') && $this->getUser()) {
+            $panier = $panierRepo->findEnCoursByUtilisateur($this->getUser());
+        }
 
         if (!$panier || $panier->getStatut() !== 'en_cours') {
             $panier = new Panier();
+            if ($this->getUser()) {
+                $panier->setUtilisateur($this->getUser());
+            }
             $em->persist($panier);
         }
 
@@ -106,6 +128,10 @@ class PanierController extends AbstractController
         $panier->calculerMontantTotal();
         $em->flush();
 
+        if ($panier->getPanierProduits()->isEmpty()) {
+            $session->remove('panier_id');
+        }
+
         $this->addFlash('success', 'Produit retiré du panier.');
 
         return $this->redirectToRoute('app_panier_index');
@@ -129,6 +155,7 @@ class PanierController extends AbstractController
             }
         }
 
+        $session->remove('panier_id');
         $this->addFlash('info', 'Panier vidé.');
 
         return $this->redirectToRoute('app_panier_index');
